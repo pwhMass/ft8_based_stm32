@@ -1,0 +1,52 @@
+# STM32 CubeIDE specific
+.metadata/
+.settings/
+[Dd]ebug/
+[Rr]elease/
+.launch
+language.settings.xml
+
+# Build files
+*.o
+*.d
+*.eep
+*.elf
+*.hex
+*.bin
+*.map
+*.lst
+
+# CubeIDE generated files
+*.cyclo
+*.su
+*.mk
+.cproject
+.project
+.depends
+
+# Temporary files
+*.bak
+*.tmp
+*~
+*.swp
+
+# IDE specific
+*.launch
+.loadpath
+.recommenders/
+*.ioc.dump
+
+# Trace files
+*.log
+*.dump
+
+# Dependencies
+/RemoteSystemsTempFiles/
+/Debug/
+/Release/
+/.metadata/
+
+# Keep these files
+!.gitignore
+!*.ioc
+!Makefile
