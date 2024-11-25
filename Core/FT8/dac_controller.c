@@ -9,7 +9,8 @@
 
 extern DMA_HandleTypeDef hdma_dac_ch1;
 extern DAC_HandleTypeDef hdac1;
-volatile struct
+extern TIM_HandleTypeDef htim2;
+struct
 {
 	uint8_t *buffer; // 双缓冲 需要长度大于等于blockSize*2
 	uint32_t blockSize;
@@ -27,28 +28,22 @@ void reset_buffer()
 	DMA_Buffer.blockIdx = 0;
 }
 
-inline uint32_t buffer_size()
-{
-	return DMA_Buffer.blockSize * 2;
-}
+#define STRUCT_BUFFER_SIZE (DMA_Buffer.blockSize * 2)
 
 // 定义回调函数
-void DmaTransferCallback(DMA_HandleTypeDef *hdma)
+void DmaTransferCallback(DAC_HandleTypeDef *hdac)
 {
-
-	if (hdma->Instance == DMA1_Channel1)
+	DMA_HandleTypeDef* hdma1=hdac->DMA_Handle1;
+	if (hdma1->Instance == DMA1_Channel3)
 	{
-
 		// USE FOR DEBUG
 		if (DMA_Buffer.bufferReady == 0)
 		{
-			/* 数据未处理完，触发panic */
-			Error_Handler(); // STM32 HAL库的错误处理函数
 			while (1)
 			{
 				// 可以在这里添加LED闪烁等提示
 				HAL_GPIO_TogglePin(GPIOB, LD3_Pin | LD2_Pin);
-				HAL_Delay(100);
+				HAL_Delay(1000);
 			}
 		}
 
@@ -60,23 +55,32 @@ void DmaTransferCallback(DMA_HandleTypeDef *hdma)
 		// 结束发送数据
 		if (DMA_Buffer.blockIdx == DMA_Buffer.blockNum)
 		{
-
+			HAL_TIM_Base_Stop(&htim2);
 			HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_1);
 			DMA_Buffer.bufferReady = 1;
 		}
 	}
 }
 
-void DacControllerInit(uint8_t *buffer, uint32_t bufferSize, uint32_t blockNum, void (*computeBlock)(uint32_t blockIdx, uint8_t *buffer_ptr))
+void HAL_DAC_ConvHalfCpltCallbackCh1(DAC_HandleTypeDef *hdac)
 {
+	DmaTransferCallback(hdac);
+}
+
+void HAL_DAC_ConvCpltCallbackCh1(DAC_HandleTypeDef *hdac)
+{
+	DmaTransferCallback(hdac);
+}
+
+void DacControllerInit(uint8_t *buffer, uint32_t blockSize, uint32_t blockNum, void (*computeBlock)(uint32_t blockIdx, uint8_t *buffer_ptr))
+{
+	HAL_TIM_Base_Stop(&htim2);
+	HAL_DAC_Stop_DMA(&hdac1, DAC_CHANNEL_1);
 	DMA_Buffer.buffer = buffer;
-	DMA_Buffer.blockSize = bufferSize;
+	DMA_Buffer.blockSize = blockSize;
 	DMA_Buffer.blockNum = blockNum;
 	DMA_Buffer.computeBlock = computeBlock;
 	reset_buffer();
-
-	HAL_DMA_RegisterCallback(&hdma_dac_ch1, HAL_DMA_XFER_HALFCPLT_CB_ID, DmaTransferCallback);
-	HAL_DMA_RegisterCallback(&hdma_dac_ch1, HAL_DMA_XFER_CPLT_CB_ID, DmaTransferCallback);
 }
 
 void DAC_Controller_Process()
@@ -121,5 +125,7 @@ void DAC_Controller_Start()
 	DMA_Buffer.computeBlock(0, DMA_Buffer.buffer);
 
 	// 需要注意HAL_DAC_Start_DMA接受uint32_t *pData，需要正确设置DMA每次传送位数
-	HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, DMA_Buffer.buffer, buffer_size(), DAC_ALIGN_8B_R);
+
+	HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, DMA_Buffer.buffer, STRUCT_BUFFER_SIZE, DAC_ALIGN_8B_R);
+	HAL_TIM_Base_Start(&htim2);
 }

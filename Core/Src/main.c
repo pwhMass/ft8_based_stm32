@@ -45,6 +45,8 @@ DMA_HandleTypeDef hdma_dac_ch1;
 
 UART_HandleTypeDef hlpuart1;
 
+TIM_HandleTypeDef htim2;
+
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 /* USER CODE BEGIN PV */
@@ -58,12 +60,28 @@ static void MX_DMA_Init(void);
 static void MX_LPUART1_UART_Init(void);
 static void MX_USB_OTG_FS_PCD_Init(void);
 static void MX_DAC1_Init(void);
+static void MX_TIM2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+#define TEST_BLOCK_SIZE 1000
+
+void testBlock(uint32_t blockIdx, uint8_t *buffer_ptr) {
+	if((blockIdx % 3)==0){
+		for(uint32_t i = 0;i<TEST_BLOCK_SIZE;i++){
+				*(buffer_ptr+i)=	255;
+			}
+	}
+	else {
+		for(uint32_t i = 0;i<TEST_BLOCK_SIZE;i++){
+				*(buffer_ptr+i)=	0;
+			}
+	}
+}
+
 
 /* USER CODE END 0 */
 
@@ -100,8 +118,18 @@ int main(void)
   MX_LPUART1_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
   MX_DAC1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
+//  uint8_t arr[2];
+//  arr[1]=0;
+//  arr[0]=255;
+//  HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, arr, 2, DAC_ALIGN_8B_R);
+
+
+  uint8_t buffer[TEST_BLOCK_SIZE*2];
+  DacControllerInit(buffer, TEST_BLOCK_SIZE, 5, testBlock);
+  DAC_Controller_Start();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -111,6 +139,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  DAC_Controller_Process();
   }
   /* USER CODE END 3 */
 }
@@ -139,18 +168,15 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSE
+                              |RCC_OSCILLATORTYPE_MSI;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.MSICalibrationValue = 0;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
-  RCC_OscInitStruct.PLL.PLLM = 1;
-  RCC_OscInitStruct.PLL.PLLN = 71;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV6;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -160,12 +186,12 @@ void SystemClock_Config(void)
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
@@ -249,6 +275,51 @@ static void MX_LPUART1_UART_Init(void)
   /* USER CODE BEGIN LPUART1_Init 2 */
 
   /* USER CODE END LPUART1_Init 2 */
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 16000;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
 
 }
 
