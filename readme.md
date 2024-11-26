@@ -6,3 +6,4 @@ ft8 based stm32
 
 ## todo list
 
+- [ ] ft8 baseband
