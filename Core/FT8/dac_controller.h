@@ -11,7 +11,8 @@
 #include "main.h"
 
 // 初始化
-void DacControllerInit(uint8_t *buffer, uint32_t bufferSize, uint32_t blockNum, void (*computeBlock)(uint32_t blockIdx, uint8_t *buffer_ptr));
+void DacControllerInit(uint8_t *buffer, uint32_t blockSize, uint32_t blockNum,
+                       void (*computeBlock)(uint32_t blockIdx, uint8_t *buffer1_ptr, uint8_t *buffer2_ptr));
 
 // 开启传送，会自动关闭
 void DAC_Controller_Start();

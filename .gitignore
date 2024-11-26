@@ -46,6 +46,8 @@ language.settings.xml
 /Release/
 /.metadata/
 
+.vscode/
+
 # Keep these files
 !.gitignore
 !*.ioc
