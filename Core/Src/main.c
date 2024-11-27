@@ -18,10 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "../FT8/dac_controller.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "../FT8/dac_controller.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -133,7 +133,7 @@ int main(void)
   //  arr[0]=255;
   //  HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, arr, 2, DAC_ALIGN_8B_R);
 
-  uint8_t buffer[TEST_BLOCK_SIZE * 4]; // 修改为4倍大小，因为需要两个通道的双缓冲
+  uint8_t buffer[TEST_BLOCK_SIZE * 4]; // 修改�??4倍大小，因为�??要两个�?�道的双缓冲
   DacControllerInit(buffer, TEST_BLOCK_SIZE, 5, testBlock);
   DAC_Controller_Start();
   /* USER CODE END 2 */
@@ -309,7 +309,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 0;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 16000;
+  htim2.Init.Period = Tim2_Count_Max;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
