@@ -126,6 +126,16 @@ void DAC_Controller_Process()
 	}
 }
 
+uint8_t DAC_Controller_IsTransferComplete()
+{
+	// 检查两个DMA通道是否都处于非忙状态
+	if (hdma_dac_ch1.State != HAL_DMA_STATE_BUSY)
+	{
+		return 1;
+	}
+	return 0;
+}
+
 void DAC_Controller_Start()
 {
 	reset_buffer();

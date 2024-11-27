@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "../FT8/dac_controller.h"
+#include "../FT8/ft8_waveform.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -133,8 +134,8 @@ int main(void)
   //  arr[0]=255;
   //  HAL_DAC_Start_DMA(&hdac1, DAC_CHANNEL_1, arr, 2, DAC_ALIGN_8B_R);
 
-  uint8_t buffer[TEST_BLOCK_SIZE * 4]; // 修改�??4倍大小，因为�??要两个�?�道的双缓冲
-  DacControllerInit(buffer, TEST_BLOCK_SIZE, 5, testBlock);
+  uint8_t buffer[FT8_SYMBOL_SAMPLES * 4]; // 修改�??4倍大小，因为�??要两个�?�道的双缓冲
+  DacControllerInit(buffer, FT8_SYMBOL_SAMPLES, 79, ft8_block_compute);
   DAC_Controller_Start();
   /* USER CODE END 2 */
 

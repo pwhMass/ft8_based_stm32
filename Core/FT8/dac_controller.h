@@ -20,4 +20,7 @@ void DAC_Controller_Start();
 // 在main函数中要循环调用，用于计算并加载数据
 void DAC_Controller_Process();
 
+// 检查单个DMA通道是否处于非忙状态
+uint8_t DAC_Controller_IsTransferComplete();
+
 #endif /* FT8_DAC_CONTROLLER_H_ */
